@@ -1,10 +1,7 @@
-import React from 'react';
-
-const Context = React.createContext();
-
-const ModalContext = React.createContext();
+import ModalContext from "./modalContext";
+import Context from "./context";
 
 export {
-    Context,
-    ModalContext
+    ModalContext,
+    Context
 }

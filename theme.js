@@ -2,7 +2,8 @@ const COLORS = {
     red: '#D83C54',
     gray: '#7D818A',
     black: '#3D4448',
-    white: '#FFF'
+    white: '#FFF',
+    overlay: '#C1BEC0'
 }
 
 const SIZES = {

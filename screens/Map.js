@@ -5,9 +5,10 @@ import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 
 import * as theme from '../theme';
-import {Context, ModalContext} from '../context';
+import {Context} from '../context';
 
-const {width} = Dimensions.get('screen');
+const {width, height} = Dimensions.get('screen');
+const ModalContext = React.createContext({});
 
 const parkingsSpots = [
   {
@@ -20,7 +21,10 @@ const parkingsSpots = [
     coordinate: {
       latitude: 37.78735,
       longitude: -122.4334,
-    }
+    },
+    description: `Description about this parking lot
+Open year 2020
+Secure with something`
   },
   {
     id: 2,
@@ -32,7 +36,10 @@ const parkingsSpots = [
     coordinate: {
       latitude: 37.78845,
       longitude: -122.4344,
-    }
+    },
+    description: `Description about this parking lot
+Open year 2019
+Secure with something`
   },
   {
     id: 3,
@@ -44,7 +51,10 @@ const parkingsSpots = [
     coordinate: {
       latitude: 37.78615,
       longitude: -122.4314,
-    }
+    },
+    description: `Description about this parking lot
+Open year 2018
+Secure with something`
   },
 ]
 
@@ -65,10 +75,9 @@ const Header = () => {
 }
 
 const Parking = (props) => {
-  const {item, handleActiveModal} = props;
-  const [hours, setHours] = useState({});
+  const {item} = props;
 
-  const {handleActive} = useContext(Context);
+  const {handleActive, handleActiveModal, hours, setHours} = useContext(Context);
 
   useEffect(() => {
     const {parkings} = props;
@@ -117,8 +126,6 @@ const Parking = (props) => {
 const Parkings = (props) => {
   const {parkings} = props;
 
-  // const {handleActiveModal} = useContext(ModalContext);
-
   return (
     <FlatList 
       horizontal
@@ -130,35 +137,83 @@ const Parkings = (props) => {
       style={styles.parkings}
       data={parkings}
       keyExtractor={item => `${item.id}`}
-      renderItem={({item}) => <Parking key={item.id} item={item} handleActiveModal={handleActiveModal}/>}
+      renderItem={({item}) => <Parking key={item.id} item={item} />}
     />
   );
 }
 
 const ModalWindow = () => {
-  const [activeModal, setActiveModal] = useState(null);
-
-  const handleActiveModal = item => setActiveModal(item);
+  const {activeModal, handleActiveModal, hours} = useContext(Context);
 
   if(!activeModal) return null;
-  
+
   return (
-    // <ModalContext.Provider value={{ handleActiveModal }}>
-      <Modal>
-        <Text>{activeModal.title}</Text>
+      <Modal
+          isVisible
+          useNativeDriver
+          backdropColor={theme.COLORS.overlay}
+          swipeDirection='down'
+          style={styles.modalContainer}
+          onBackButtonPress={() => handleActiveModal(null)}
+          onBackdropPress={() => handleActiveModal(null)}
+          onSwipeComplete={() => handleActiveModal(null)}
+      >
+        <View style={styles.modal}>
+          <View>
+            <Text style={{fontSize: theme.SIZES.font * 1.5}}>
+              {activeModal.title}
+            </Text>
+          </View>
+          <View style={{paddingVertical: theme.SIZES.base}}>
+            <Text style={{color: theme.COLORS.gray, fontSize: theme.SIZES.font * 1.1}}>
+              {activeModal.description}
+            </Text>
+          </View>
+          <View style={styles.modalInfo}>
+            <View style={styles.parkingIcon}>
+              <Ionicons name="ios-pricetag" size={theme.SIZES.icon} color={theme.COLORS.gray} />
+              <Text>${activeModal.price}</Text>
+            </View>
+            <View style={styles.parkingIcon}>
+              <Ionicons name="ios-pricetag" size={theme.SIZES.icon} color={theme.COLORS.gray} />
+              <Text>{activeModal.rating}</Text>
+            </View>
+            <View style={styles.parkingIcon}>
+              <Ionicons name="ios-pricetag" size={theme.SIZES.icon} color={theme.COLORS.gray} />
+              <Text>{activeModal.distance}</Text>
+            </View>
+            <View style={styles.parkingIcon}>
+              <Ionicons name="md-car" size={theme.SIZES.icon} color={theme.COLORS.gray} />
+              <Text>{activeModal.free} / {activeModal.spots}</Text>
+            </View>
+          </View>
+          <View>
+            <Text style={{textAlign: 'center'}}>Choose your Booking Period</Text>
+          </View>
+          <View style={{justifyContent: 'flex-end'}}>
+            <TouchableOpacity style={styles.payBtn}>
+                <Text style={styles.payText}>
+                  Proceed to pay $20
+                </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
-    // </ModalContext.Provider>
   )
 }
 
 const ParkingMap = (props) => {
+  const [hours, setHours] = useState({});
   const [active, setActive] = useState(null);
+  const [activeModal, setActiveModal] = useState(null);
+
+  const handleActiveModal = item => setActiveModal(item);
 
   const handleActive = id => setActive(id);
 
   const {currentPosition, parkings} = props;
   return (
-    <Context.Provider value={{ handleActive }}>
+    <Context.Provider value={{ handleActive, handleActiveModal, activeModal, hours, setHours }}>
       <View style={styles.container}>
         <Header />
         <MapView
@@ -189,6 +244,8 @@ const ParkingMap = (props) => {
     </Context.Provider>
   );
 }
+
+
 
 ParkingMap.defaultProps = {
   currentPosition: {
@@ -313,4 +370,27 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between', 
     alignItems: 'center'
   },
+  modalContainer: {
+    margin: 0,
+    justifyContent: 'flex-end'
+  },
+  modal: {
+    backgroundColor: theme.COLORS.white,
+    padding: theme.SIZES.base * 2,
+    height: height * 0.75,
+    borderTopLeftRadius: theme.SIZES.base,
+    borderTopRightRadius: theme.SIZES.base
+  }, 
+  payBtn: {
+    // flex: 1,
+    flexDirection: 'row',
+    padding: theme.SIZES.base * 1.5,
+    borderRadius: 6,
+    backgroundColor: theme.COLORS.red
+  },
+  payText: {
+    fontSize: theme.SIZES.base * 1.5,
+    fontWeight: '700',
+    color: theme.COLORS.white
+  }
 });
